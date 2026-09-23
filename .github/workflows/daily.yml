@@ -1,0 +1,43 @@
+name: Daily Hype Index
+
+on:
+  schedule:
+    - cron: "30 16 * * *"   # 00:30 Singapore time: collect/compute the day that just ended
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+
+      - name: Collect observations
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        # A failed source is reported but does not stop the run; that day simply
+        # has no observation for that metric.
+        run: python -m hype_index collect || true
+
+      - name: Compute index (after lock)
+        run: |
+          if [ -f formula/lock.json ]; then
+            python -m hype_index compute
+            python -m hype_index verify
+          else
+            echo "formula not locked yet; collecting base-period data only"
+          fi
+
+      - name: Commit results
+        run: |
+          git config user.name "hype-index-bot"
+          git config user.email "hype-index-bot@users.noreply.github.com"
+          git add data output
+          git diff --cached --quiet || git commit -m "Hype index update $(TZ=Asia/Singapore date -d yesterday +%F)"
+          git push

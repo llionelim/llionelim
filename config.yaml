@@ -1,0 +1,95 @@
+# Riftbound Hype Index — configuration
+#
+# There are two kinds of settings in this file:
+#
+#   formula:     THE FORMULA. Everything under this key defines how the index
+#                is calculated. Once `lock-base` has been run, this section is
+#                frozen into formula/lock.json and every daily `compute` checks
+#                that this section still matches the locked version exactly.
+#                Editing it and running `compute` will FAIL on purpose.
+#                To change it: edit here, then run `update-formula` (a
+#                versioned, changelogged change).
+#
+#   collection / paths:
+#                Operational settings (HTTP user agent, file locations).
+#                These never affect the calculation and can be edited freely.
+
+formula:
+  # Index level on the base date. Base = 100 means "same activity as the base period".
+  base_level: 100
+
+  # Trailing rolling window (days) used to average each metric's daily observations.
+  # The base period should be the same length so that launch day is exactly 100.
+  window_days: 28
+
+  # How metric ratios (current rolling value / base value) are combined.
+  #   weighted_arithmetic:  I = L * sum_m( w_m * R_m / B_m )      (default; Laspeyres-style)
+  #   weighted_geometric:   I = L * prod_m( (R_m / B_m) ^ w_m )
+  combination: weighted_arithmetic
+
+  # Each metric: id, weight (all weights must sum to exactly 1.0), minimum number
+  # of observations required inside the rolling window, and the proxy source.
+  # If ANY metric has fewer than min_observations in the window on a given day,
+  # the index is NOT published for that day (status=insufficient_data). Weights
+  # are never redistributed. This rule applies identically on every day.
+  #
+  # VERIFY every source (subreddit name, Wikipedia article title, search query)
+  # returns sensible data before running lock-base. Changing a source after the
+  # lock is a formula version change.
+  metrics:
+    - id: reddit_subscribers
+      weight: 0.20
+      min_observations: 20
+      source:
+        type: reddit_subscribers
+        subreddit: RiftboundTCG
+
+    - id: reddit_daily_posts
+      weight: 0.20
+      min_observations: 20
+      source:
+        type: reddit_daily_posts
+        subreddit: RiftboundTCG
+
+    - id: wikipedia_pageviews
+      weight: 0.10
+      min_observations: 20
+      source:
+        type: wikipedia_pageviews
+        project: en.wikipedia
+        article: Riftbound
+
+    - id: youtube_daily_uploads
+      weight: 0.15
+      min_observations: 20
+      source:
+        type: youtube_daily_uploads
+        query: riftbound
+
+    # Singapore-local signals, entered by hand with `record` (weekly cadence).
+    - id: sg_event_players
+      weight: 0.20
+      min_observations: 3
+      source:
+        type: manual
+        description: Total players across Singapore Riftbound store events that week
+
+    - id: sg_carousell_listings
+      weight: 0.15
+      min_observations: 3
+      source:
+        type: manual
+        description: Active Carousell SG listings matching "riftbound" (weekly snapshot)
+
+collection:
+  user_agent: "nexusnights.sg-hype-index/1.0 (+https://nexusnights.sg)"
+  timeout_seconds: 30
+  # Env var holding the YouTube Data API v3 key (used by youtube_daily_uploads).
+  youtube_api_key_env: YOUTUBE_API_KEY
+
+paths:
+  observations: data/observations.csv
+  lock: formula/lock.json
+  changelog_md: formula/CHANGELOG.md
+  output_csv: output/hype_index.csv
+  output_json: output/hype_index.json
