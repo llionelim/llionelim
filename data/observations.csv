@@ -1,0 +1,17 @@
+date,metric_id,source_key,value,collected_at,note
+2026-09-09,wikipedia_pageviews,c3ebcc905543,373.0,2026-09-24T03:44:13+08:00,wikipedia_pageviews
+2026-09-10,wikipedia_pageviews,c3ebcc905543,304.0,2026-09-24T03:44:13+08:00,wikipedia_pageviews
+2026-09-11,wikipedia_pageviews,c3ebcc905543,266.0,2026-09-24T03:44:13+08:00,wikipedia_pageviews
+2026-09-12,wikipedia_pageviews,c3ebcc905543,279.0,2026-09-24T03:44:13+08:00,wikipedia_pageviews
+2026-09-13,wikipedia_pageviews,c3ebcc905543,296.0,2026-09-24T03:44:13+08:00,wikipedia_pageviews
+2026-09-14,wikipedia_pageviews,c3ebcc905543,383.0,2026-09-24T03:44:13+08:00,wikipedia_pageviews
+2026-09-15,wikipedia_pageviews,c3ebcc905543,329.0,2026-09-24T03:44:13+08:00,wikipedia_pageviews
+2026-09-16,wikipedia_pageviews,c3ebcc905543,295.0,2026-09-24T03:44:13+08:00,wikipedia_pageviews
+2026-09-17,wikipedia_pageviews,c3ebcc905543,253.0,2026-09-24T03:44:13+08:00,wikipedia_pageviews
+2026-09-18,wikipedia_pageviews,c3ebcc905543,308.0,2026-09-24T03:44:13+08:00,wikipedia_pageviews
+2026-09-19,wikipedia_pageviews,c3ebcc905543,308.0,2026-09-24T03:44:13+08:00,wikipedia_pageviews
+2026-09-20,wikipedia_pageviews,c3ebcc905543,315.0,2026-09-24T03:44:13+08:00,wikipedia_pageviews
+2026-09-21,official_event_players,22eadeae97e4,6627.0,2026-09-24T03:44:13+08:00,riftbound_official_players
+2026-09-21,official_events,19a1c0244b23,1058.0,2026-09-24T03:44:13+08:00,riftbound_official_events
+2026-09-21,wikipedia_pageviews,c3ebcc905543,342.0,2026-09-24T03:44:13+08:00,wikipedia_pageviews
+2026-09-22,wikipedia_pageviews,c3ebcc905543,321.0,2026-09-24T03:44:13+08:00,wikipedia_pageviews
