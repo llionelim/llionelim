@@ -24,8 +24,9 @@ def _sgt_day_bounds(day: date) -> tuple[datetime, datetime]:
     return start, start + timedelta(days=1)
 
 
-def _get(url: str, settings: dict, **kwargs) -> dict:
-    headers = {"User-Agent": settings.get("user_agent", "hype-index/1.0")}
+def _get(url: str, settings: dict, headers_extra: dict | None = None, **kwargs) -> dict:
+    headers = {"User-Agent": settings.get("user_agent", "hype-index/1.0"),
+               "Accept": "application/json", **(headers_extra or {})}
     resp = requests.get(url, headers=headers, timeout=settings.get("timeout_seconds", 30), **kwargs)
     if resp.status_code != 200:
         raise SourceError(f"GET {url} -> HTTP {resp.status_code}")
@@ -97,7 +98,64 @@ def youtube_daily_uploads(source: dict, day: date, settings: dict) -> list[tuple
     return [(day, float(count))]
 
 
+_official_cache: dict = {}
+
+
+def _official_events_for_day(source: dict, day: date, settings: dict) -> list[dict]:
+    """Every event worldwide on the official Riftbound locator (Carde.io API)
+    whose start time falls in `day` (SGT), all statuses. Cached per run so the
+    events and players metrics share one crawl."""
+    key = (source["api_base"], source["game_slug"], day)
+    if key in _official_cache:
+        return _official_cache[key]
+    start, end = _sgt_day_bounds(day)
+    fmt = "%Y-%m-%dT%H:%M:%SZ"
+    params = [
+        ("game_slug", source["game_slug"]),
+        ("start_date_after", start.astimezone(timezone.utc).strftime(fmt)),
+        ("start_date_before", end.astimezone(timezone.utc).strftime(fmt)),
+        ("display_statuses", "upcoming"), ("display_statuses", "inProgress"),
+        ("display_statuses", "past"),
+        ("page_size", 100),
+    ]
+    events, page = [], 1
+    while True:
+        data = _get(f"{source['api_base']}/events/", settings,
+                    params=params + [("page", page)],
+                    headers_extra={"Referer": source["referer"], "Origin": source["referer"].rstrip("/")})
+        events += data.get("results", [])
+        nxt = data.get("next_page_number")
+        if not nxt:
+            break
+        if page >= 500:
+            # Never silently truncate: a partial count would corrupt the series.
+            raise SourceError(f"more than {page} pages of events for {day}; refusing partial count")
+        page = nxt
+    expected = data.get("count")
+    if expected is not None and expected != len(events):
+        raise SourceError(f"API reported {expected} events for {day} but {len(events)} were returned")
+    _official_cache[key] = events
+    return events
+
+
+def riftbound_official_events(source: dict, day: date, settings: dict) -> list[tuple[date, float]]:
+    """Number of official Riftbound events worldwide starting on `day` - lag_days.
+
+    The lag gives stores time to finish and report events before they are counted."""
+    target = day - timedelta(days=source["lag_days"])
+    return [(target, float(len(_official_events_for_day(source, target, settings))))]
+
+
+def riftbound_official_players(source: dict, day: date, settings: dict) -> list[tuple[date, float]]:
+    """Total starting players across those events (missing counts as 0)."""
+    target = day - timedelta(days=source["lag_days"])
+    events = _official_events_for_day(source, target, settings)
+    return [(target, float(sum(e.get("starting_player_count") or 0 for e in events)))]
+
+
 COLLECTORS = {
+    "riftbound_official_events": riftbound_official_events,
+    "riftbound_official_players": riftbound_official_players,
     "reddit_subscribers": reddit_subscribers,
     "reddit_daily_posts": reddit_daily_posts,
     "wikipedia_pageviews": wikipedia_pageviews,

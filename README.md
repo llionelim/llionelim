@@ -38,8 +38,17 @@ damping, outlier clipping or special cases. A spike in the data is a spike in th
 | `reddit_daily_posts` | 0.20 | r/RiftboundTCG `/new` | posts created per SGT day |
 | `wikipedia_pageviews` | 0.10 | Wikimedia pageviews API | UTC days, backfills 14 days |
 | `youtube_daily_uploads` | 0.15 | YouTube Data API search | needs `YOUTUBE_API_KEY` |
-| `sg_event_players` | 0.20 | manual (`record`) | Singapore store-event turnout, weekly |
-| `sg_carousell_listings` | 0.15 | manual (`record`) | Carousell SG listing count, weekly |
+| `official_events` | 0.15 | official Riftbound locator | worldwide events starting that day |
+| `official_event_players` | 0.20 | official Riftbound locator | total players at those events |
+
+The two official metrics come from one crawl of the event locator at
+[locator.riftbound.uvsgames.com](https://locator.riftbound.uvsgames.com/events) (run on Carde.io):
+`GET https://api.riftbound.uvsgames.com/api/v2/events/?game_slug=riftbound&start_date_after=…&start_date_before=…`.
+The crawl counts every event worldwide of every status, and sums `starting_player_count`
+(a missing count is treated as 0). It counts events from 2 days before the collection date
+(`lag_days`), so stores have time to finish and report them. If the crawl returns fewer events
+than the API's reported `count`, collection fails for that day instead of saving a low number.
+This API is undocumented, so run `collect` once and check the numbers before locking.
 
 **Verify each source before you lock:** check the subreddit name, the Wikipedia article title
 and the YouTube query. Google Trends is left out on purpose. Trends rescales every query to its
@@ -72,8 +81,6 @@ pip install -r requirements.txt
 
 # 1. Pre-launch: collect data every day for at least `window_days` (28) days.
 python -m hype_index collect                 # automatic metrics for yesterday (SGT)
-python -m hype_index record --metric sg_event_players --date 2026-09-20 --value 64 \
-    --note "3 stores, weekly total"
 python -m hype_index status                  # coverage per metric
 
 # 2. Launch: freeze base values and lock formula v1 (one time only).
@@ -100,8 +107,8 @@ method, or swapping a proxy source is a **version change**. To make one:
 # Re-base: a new index=100 period going forward. Old rows keep their version and level.
 python -m hype_index update-formula --mode rebase \
     --base-start 2027-03-04 --base-end 2027-03-31 \
-    --reason "Added TikTok metric; SG events reweighted" \
-    --summary "add tiktok_views 0.10, sg_event_players 0.20->0.15"
+    --reason "Added TikTok metric; official events reweighted" \
+    --summary "add tiktok_views 0.10, official_event_players 0.20->0.15"
 
 # Continuity: keep the level and the original base period. Valid only for neutral changes.
 python -m hype_index update-formula --mode continuity --reason "..."

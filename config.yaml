@@ -66,20 +66,29 @@ formula:
         type: youtube_daily_uploads
         query: riftbound
 
-    # Singapore-local signals, entered by hand with `record` (weekly cadence).
-    - id: sg_event_players
-      weight: 0.20
-      min_observations: 3
-      source:
-        type: manual
-        description: Total players across Singapore Riftbound store events that week
-
-    - id: sg_carousell_listings
+    # International signals from the official Riftbound event locator
+    # (locator.riftbound.uvsgames.com, Carde.io API). Worldwide, all event types.
+    # lag_days: count events from N days before collection, so stores have time
+    # to finish and report them.
+    - id: official_events
       weight: 0.15
-      min_observations: 3
+      min_observations: 20
       source:
-        type: manual
-        description: Active Carousell SG listings matching "riftbound" (weekly snapshot)
+        type: riftbound_official_events
+        api_base: https://api.riftbound.uvsgames.com/api/v2
+        referer: https://locator.riftbound.uvsgames.com/
+        game_slug: riftbound
+        lag_days: 2
+
+    - id: official_event_players
+      weight: 0.20
+      min_observations: 20
+      source:
+        type: riftbound_official_players
+        api_base: https://api.riftbound.uvsgames.com/api/v2
+        referer: https://locator.riftbound.uvsgames.com/
+        game_slug: riftbound
+        lag_days: 2
 
 collection:
   user_agent: "nexusnights.sg-hype-index/1.0 (+https://nexusnights.sg)"
