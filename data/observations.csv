@@ -41,4 +41,7 @@ date,metric_id,source_key,value,collected_at,note
 2026-09-30,official_event_players,22eadeae97e4,8643.0,2026-10-03T04:51:20+08:00,riftbound_official_players
 2026-09-30,official_events,19a1c0244b23,1036.0,2026-10-03T04:51:20+08:00,riftbound_official_events
 2026-09-30,wikipedia_pageviews,c3ebcc905543,534.0,2026-10-02T05:10:09+08:00,wikipedia_pageviews
+2026-10-01,official_event_players,22eadeae97e4,8552.0,2026-10-04T03:19:20+08:00,riftbound_official_players
+2026-10-01,official_events,19a1c0244b23,1173.0,2026-10-04T03:19:20+08:00,riftbound_official_events
 2026-10-01,wikipedia_pageviews,c3ebcc905543,644.0,2026-10-03T04:51:20+08:00,wikipedia_pageviews
+2026-10-02,wikipedia_pageviews,c3ebcc905543,478.0,2026-10-04T03:19:20+08:00,wikipedia_pageviews
